@@ -16,7 +16,7 @@ input_field.send_keys("1000")
 # Ждем некоторое время
 sleep(2)
 
-# Очищаем поле
+# Очищаем поле  
 input_field.clear()
 sleep(2)
 

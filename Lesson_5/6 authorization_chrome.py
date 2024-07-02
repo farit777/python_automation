@@ -13,7 +13,7 @@ driver.get("http://the-internet.herokuapp.com/login")
 username_field = driver.find_element(by=By.NAME, value="username")
 username_field.send_keys("tomsmith")
 
-# Находим поле для ввода password и вводим значение "SuperSecretPassword!"
+# Находим поле для ввода password и вводим значение "SuperSecretPassword!"  
 password_field = driver.find_element(by=By.NAME, value="password")
 password_field.send_keys("SuperSecretPassword!")
 

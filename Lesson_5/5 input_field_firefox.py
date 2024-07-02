@@ -12,7 +12,7 @@ driver.get("http://the-internet.herokuapp.com/inputs")
 input_field = driver.find_element(by=By.TAG_NAME, value="input")
 input_field.send_keys("1000")
 
-# Ждем некоторое время
+# Ждем некоторое время  
 sleep(2)
 
 # Очищаем поле

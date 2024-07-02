@@ -13,10 +13,10 @@ driver.get("http://uitestingplayground.com/dynamicid")
 
 # Находим и кликаем на синюю кнопку с плавающим ID
 blue_button = driver.find_element(by=By.CSS_SELECTOR, value="button.btn-primary")
-blue_button.click()
-
-print('Button clicked')
-
+for i in range(1,4):
+    blue_button.click()
+    print(f'Кнопка нажата {i} раз(а)')
+    
 sleep(1)
 
 # Закрываем браузер
