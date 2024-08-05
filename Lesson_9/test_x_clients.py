@@ -16,29 +16,36 @@ def test_get_company_workers():
 
     # Сравниваем результаты
     assert len(api_result) == len(db_result)
-    
-# Проверка добавления новго сотрудника
-def test_add_new_worker():
-    # Получить количество сотрудников в компании
-    company_id = empl.get_first_company_id()
-#    body = empl.get_workers_list(company_id)
-#    len_before = len(body)
 
-	#Данные нового сотрудника
-    worker = {
-#        "id": 0,
-        "firstName": "Sfrt",
-        "lastName": "Sham",
-        "middleName": "string",
-        "companyId": company_id,
-        "email": "sfrt777@mail.com",
-        "url": "string",
-        "phone": "string",
-        "birthdate": "2024-07-27T11:12:36.267Z",
-        "isActive": True
+
+    
+# Проверка добавления нового сотрудника
+def test_add_new_worker():
+    # Получить ID первой компании в БД
+    company_id = empl.get_first_company_id()
+
+    #Данные нового сотрудника
+    new_worker = {
+        "first_name": "Sfrt",
+        "last_name": "Sham",
+        "middle_name": "",
+        "company_id": company_id,
+        "email": "sfrt@mail.com",
+        "avatar_url": "",
+        "phone": "89182793824",
+        "birthdate": "1954/05/31",
+        "is_active": True
     } 
+
     # Добавление нового сотрудника
-    new_id= empl.add_new_worker(worker)["id"]
+    db.add_new_worker(new_worker)
+
+    # Получим список сотрудников по компании
+    db_workers = db.get_employees(company_id)
+    # В цикле найдем введенного нового сотрудника
+    for w in db_workers:
+        if (w["first_name"] == new_worker["first_name"]) and (w["last_name"] == new_worker["last_name"]):
+            new_id = w["id"]
 
     # Получим сотрудника через запрос по API
     worker_api = empl.get_worker(new_id)
@@ -50,81 +57,109 @@ def test_add_new_worker():
     db.delete_employee_by_id(new_id)
 
 	# Проверить имя, фамилию и id
-    assert worker_api["firstName"] == worker_db[0][4]
-    assert worker_api["lastName"] == worker_db[0][5]
-    assert worker_api["id"] == worker_db[0][0]
+    assert worker_api["firstName"] == worker_db["first_name"]
+    assert worker_api["lastName"] == worker_db["last_name"]
+    assert worker_api["id"] == worker_db["id"]
+
 
 
 def test_get_worker_by_id():
-    """
-    1 Сначала получаем список компаний
-    2 Берем ID последней компании в списке
-    3 По полученному ID получаем список сотрудников в этой компании
-    4 Берем ID последнего сотрудника в списке
-    5 По этому ID получаем сотрудника из БД
-    6 Сравниваем имя и фамилию сотрудника в списке и полученного сотрудника из БД
-    """
-
-    # Получим ID, имя и фамилию последнего в списке сотрудника
+    # Получить ID первой компании в БД
     company_id = empl.get_first_company_id()
-    body = empl.get_workers_list(company_id)
-    worker_id = body[-1]["id"]
-    worker_name = body[-1]["firstName"]
-    worker_last_name = body[-1]["lastName"]
 
-    # Находим сотрудника в БД
+    #Данные нового сотрудника
+    new_worker = {
+        "first_name": "Sfrt",
+        "last_name": "Sham",
+        "middle_name": "",
+        "company_id": company_id,
+        "email": "sfrt@mail.com",
+        "avatar_url": "",
+        "phone": "89182793824",
+        "birthdate": "1954/05/31",
+        "is_active": True
+    } 
+
+    # Добавление нового сотрудника
+    db.add_new_worker(new_worker)
+
+    # Получим список сотрудников по компании
+    db_workers = db.get_employees(company_id)
+    # В цикле найдем введенного нового сотрудника
+    for w in db_workers:
+        if (w["first_name"] == new_worker["first_name"]) and (w["last_name"] == new_worker["last_name"]):
+            worker_id = w["id"]
+
+    # # Находим сотрудника в БД
     worker_db = db.get_employee_by_id(worker_id)
 
-    # Удаляем введенного сотрудника
+    # Получим сотрудника через запрос по API
+    worker_api = empl.get_worker(worker_id)
+    
+    # # Удаляем введенного сотрудника
     db.delete_employee_by_id(worker_id)
 
 	# Сравниваем имена и фамилии сотрудников
-    assert worker_name == worker_db[0][4]
-    assert worker_last_name == worker_db[0][5]
+    assert worker_api["firstName"] == worker_db["first_name"]
+    assert worker_api["lastName"] == worker_db["last_name"]
+    assert worker_api["id"] == worker_db["id"]
+
+
 
 def test_edit():
     # Получим ID, первой в списке компании
     company_id = empl.get_first_company_id()
 
-    # Добавим нового сотрудника
-    # Данные нового сотрудника
-    worker = {
-        #"id": 0,
-        "firstName": "Sfrt777",
-        "lastName": "Sham",
-        "middleName": "",
-        "companyId": company_id,
+    #Данные нового сотрудника
+    new_worker = {
+        "first_name": "Sfrt",
+        "last_name": "Sham",
+        "middle_name": "",
+        "company_id": company_id,
         "email": "sfrt@mail.com",
-        "url": "",
-        "phone": "",
-        "birthdate": "2024-07-27T11:28:31.117Z",
-        "isActive": True
+        "avatar_url": "",
+        "phone": "89182793824",
+        "birthdate": "1954/05/31",
+        "is_active": True
     } 
+
     # Добавление нового сотрудника
-    new_id = empl.add_new_worker(worker)["id"]
+    db.add_new_worker(new_worker)
+    
+    # Получим список сотрудников по компании
+    db_workers = db.get_employees(company_id)
+    # В цикле найдем введенного нового сотрудника
+    for w in db_workers:
+        if (w["first_name"] == new_worker["first_name"]) and (w["last_name"] == new_worker["last_name"]):
+            worker_id = w["id"]
+
 
     # Отредактируем данные сотрудника
-    new_worker = {
-        "lastName": "Шам",
-        "email": "far@mail.com",
-        "url": "http://1c.ru",
-        "phone": "81234567890",
-        "isActive": True
-    }
-    body = empl.edit(new_id, new_worker)
-    
-    # Получим данные сотрудника из ответа
-    edited_id_api = body["id"]
-    edited_email_api = body["email"]
-    edited_url_api = body["url"]
+    edited_worker = {
+        "first_name": "Фарит",
+        "last_name": "Шам",
+        "middle_name": "",
+        "company_id": company_id,
+        "email": "sfrt@mail.com",
+        "avatar_url": "http://1c.ru",
+        "phone": "89182793824",
+        "birthdate": "1954/05/31",
+        "is_active": True
+    } 
+
+    db.update_employee(worker_id, edited_worker)
 
     # Получим данные сотрудника из БД
-    worker_db = db.get_employee_by_id(edited_id_api)
+    worker_db = db.get_employee_by_id(worker_id)
+
+    # Получим сотрудника через запрос по API
+    worker_api = empl.get_worker(worker_id)    
 
     # Удаляем введенного сотрудника
-    db.delete_employee_by_id(edited_id_api)
+    db.delete_employee_by_id(worker_id)
 
     # Сравниваем данные, которые вводили с полученными после редатирования
-    assert edited_id_api == worker_db[0][0]
-    assert edited_email_api == worker_db[0][8]
-    assert edited_url_api == worker_db[0][10]
+    assert worker_api["lastName"] == worker_db["last_name"]
+    assert worker_api["email"] == worker_db["email"]
+    assert worker_api["phone"] == worker_db["phone"]
+    assert worker_api["id"] == worker_db["id"]
