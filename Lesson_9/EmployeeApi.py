@@ -41,7 +41,7 @@ class EmployeeApi:
         return resp.json()
     
     # Редакировать сотрудника
-    def edit(self, new_id, worker_dict):
+    def edit_employee(self, new_id, worker_dict):
         my_headers = {}
         # Авторизуемся как пользователь
         my_headers["x-client-token"] = self.get_token()

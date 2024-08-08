@@ -1,91 +1,117 @@
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Column, String, Integer, Boolean, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.exc import NoResultFound
-
-Base = declarative_base()
-
-class Employee(Base):
-    __tablename__ = 'employee'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    first_name = Column(String)
-    last_name = Column(String)
-    middle_name = Column(String, nullable=True)
-    company_id = Column(Integer)
-    email = Column(String, nullable=True)
-    avatar_url = Column(String, nullable=True)
-    phone = Column(String)
-    birthdate = Column(DateTime, nullable=True)
-    is_active = Column(Boolean)
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy import Table, Column, Integer, String, Boolean, DateTime, MetaData
+from sqlalchemy.sql import insert, update, delete
 
 class EmployeeTable:
-    scripts = {
-        "select employees": text("SELECT * FROM employee WHERE company_id = :company_id"),
-        "select employee by ID": text("SELECT * FROM employee WHERE id = :id"),
-        "delete employee by ID": text("DELETE FROM employee WHERE id = :id"),
-        "update employee": text("UPDATE employee SET first_name = :first_name, last_name = :last_name, "
-                                 "middle_name = :middle_name, company_id = :company_id, email = :email, "
-                                 "avatar_url = :avatar_url, phone = :phone, birthdate = :birthdate, is_active = :is_active "
-                                 "WHERE id = :id")
-    }
 
     def __init__(self, connection_string):
-        self.engine = create_engine(connection_string)
-        self.Session = sessionmaker(bind=self.engine)
 
-    def delete_employee_by_id(self, id):
-        with self.Session() as session:
-            result = session.execute(self.scripts["delete employee by ID"], {'id': id})
-            if result.rowcount == 0:
-                raise ValueError(f"Employee with ID {id} not found.")
-            session.commit()
+        self.db = create_engine(connection_string)
 
-    def add_new_worker(self, new_worker):
-        with self.Session() as session:
-            employee = Employee(
-                first_name=new_worker["first_name"],
-                last_name=new_worker["last_name"],
-                middle_name=new_worker["middle_name"],
-                company_id=new_worker["company_id"],
-                email=new_worker["email"],
-                avatar_url=new_worker["avatar_url"],
-                phone=new_worker["phone"],
-                birthdate=new_worker["birthdate"],
-                is_active=new_worker["is_active"]
-            )
-            session.add(employee)
-            session.commit()
+        # Определение метаданных
+        self.metadata = MetaData()
 
-    def get_employees(self, company_id):
-        with self.Session() as session:
-            result = session.execute(self.scripts["select employees"], {'company_id': company_id})
-            return [dict(zip(result.keys(), row)) for row in result]
-            
+        # Определение таблицы 'company'
+        self.company = Table('company', self.metadata,
+            Column('id', Integer, primary_key=True, autoincrement=True),
+            Column('name', String),
+            Column('description', String, nullable=True),
+            Column('is_active', Boolean)
+    )
 
-    def get_employee_by_id(self, id):
-        with self.Session() as session:
-            result = session.execute(self.scripts["select employee by ID"], {'id': id})
-            employee = result.mappings().first()  # Получаем первую запись как словарь
-            if employee is None:
-                raise ValueError(f"Employee with ID {id} not found.")
-            return dict(employee)
+        # Определение таблицы 'employee'
+        self.employee = Table('employee', self.metadata,
+            Column('id', Integer, primary_key=True, autoincrement=True),
+            Column('first_name', String),
+            Column('last_name',String),
+            Column('middle_name', String, nullable=True),
+            Column('company_id', Integer),
+            Column('email', String, nullable=True),
+            Column('avatar_url', String, nullable=True),
+            Column('phone', String),
+            Column('birthdate', DateTime, nullable=True),
+            Column('is_active', Boolean)
+    )
 
-    def update_employee(self, id, updated_info):
-        with self.Session() as session:
-            result = session.execute(self.scripts["update employee"], {
-                'id': id,
-                'first_name': updated_info.get("first_name"),
-                'last_name': updated_info.get("last_name"),
-                'middle_name': updated_info.get("middle_name", ""),
-                'company_id': updated_info.get("company_id"),
-                'email': updated_info.get("email", ""),
-                'avatar_url': updated_info.get("avatar_url"),
-                'phone': updated_info.get("phone", ""),
-                'birthdate': updated_info.get("birthdate", ""),
-                'is_active': updated_info.get("is_active")
-            })
-            if result.rowcount == 0:
-                raise ValueError(f"Employee with ID {id} not found.")
-            session.commit()
+    # Создание новой компании
+    def create_company(self, comp_name, comp_descr):
+        try:
+            with self.db.connect() as connection:
+                stmt = insert(self.company).values(name=comp_name, description=comp_descr).returning(self.company.c.id)
+                result = connection.execute(stmt)
+                connection.commit()
+                comp_id = result.scalar()  # Получаем новый ID
+                return comp_id
+        except Exception as _ex:
+            print("[INFO] Ошибка при соединении с БД", _ex)
+            return None
+
+    # Создание нового сотрудника
+    def create_employee(self, new_worker):
+        try:
+            with self.db.connect() as connection:
+                stmt = insert(self.employee).values(new_worker).returning(self.employee.c.id)
+                result = connection.execute(stmt)
+                connection.commit()
+                empl_id = result.scalar()  # Получаем ID нового сотрудника
+                return empl_id  # Возвращаем ID
+        except Exception as _ex:
+            print("[INFO] Ошибка при соединении с БД", _ex)
+            return None
+
+    # Редактирование данных сотрудника
+    def edit_employee(self, empl_id, updated_data):
+        try:
+            with self.db.connect() as connection:
+                stmt = update(self.employee).where(self.employee.c.id == empl_id).values(updated_data)
+                connection.execute(stmt)
+                connection.commit()
+                print("[INFO] Информация о сотруднике обновлена")
+        except Exception as _ex:
+            print("[ERROR] Ошибка при обновлении сотрудника", str(_ex))
+
+    # Удаление сотрудника
+    def delete_employee(self, empl_id):
+        try:
+            with self.db.connect() as connection:
+                stmt = delete(self.employee).where(self.employee.c.id == empl_id)
+                connection.execute(stmt)
+                connection.commit()
+                print("[INFO] Сотрудник удален")
+        except Exception as _ex:
+            print("[ERROR] Ошибка при удалении сотрудника", str(_ex))
+        
+    # Удаление компании
+    def delete_company(self, comp_id):
+        try:    
+            with self.db.connect() as connection:
+                stmt = delete(self.company).where(self.company.c.id == comp_id)
+                connection.execute(stmt)
+                connection.commit()
+        except Exception as _ex:
+            print("[ERROR] Ошибка при удалении сотрудника", str(_ex))
+
+    # Получение списка сотрудников
+    def get_employees_list(self, comp_id):
+        try:
+            with self.db.connect() as connection:
+                stmt = self.employee.select().where(self.employee.c.company_id == comp_id)
+                result = connection.execute(stmt)
+                empl_list = [dict(row) for row in result]
+                return empl_list
+        except Exception as _ex:
+            print("[ERROR] Ошибка при соединении с БД", str(_ex))
+            return []
+
+    # Получить сотрудника по ID
+    def get_employee_by_id(self, empl_id):
+        try:
+            with self.db.connect() as connection:
+                stmt = self.employee.select().where(self.employee.c.id == empl_id)
+                result = connection.execute(stmt)
+                employee_row = result.fetchone() 
+                return dict(employee_row) if employee_row else None  # Возвращаем данные сотрудника или None
+        except Exception as _ex:
+            print("[ERROR] Ошибка при соединении с БД", str(_ex))
+            return None
