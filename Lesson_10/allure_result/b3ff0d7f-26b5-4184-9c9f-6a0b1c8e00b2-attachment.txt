@@ -1,0 +1,15 @@
+[INFO] Ошибка при соединении с БД (psycopg2.OperationalError) connection to server at "dpg-cour99g21fec73bsgvug-a.oregon-postgres.render.com" (35.227.164.209), port 5432 failed: SSL connection has been closed unexpectedly
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[INFO] Ошибка при соединении с БД (psycopg2.OperationalError) connection to server at "dpg-cour99g21fec73bsgvug-a.oregon-postgres.render.com" (35.227.164.209), port 5432 failed: SSL connection has been closed unexpectedly
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[ERROR] Ошибка при соединении с БД (psycopg2.OperationalError) connection to server at "dpg-cour99g21fec73bsgvug-a.oregon-postgres.render.com" (35.227.164.209), port 5432 failed: SSL connection has been closed unexpectedly
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[ERROR] Ошибка при удалении сотрудника (psycopg2.OperationalError) connection to server at "dpg-cour99g21fec73bsgvug-a.oregon-postgres.render.com" (35.227.164.209), port 5432 failed: SSL connection has been closed unexpectedly
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[ERROR] Ошибка при удалении сотрудника (psycopg2.OperationalError) connection to server at "dpg-cour99g21fec73bsgvug-a.oregon-postgres.render.com" (35.227.164.209), port 5432 failed: SSL connection has been closed unexpectedly
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
